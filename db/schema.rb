@@ -10,7 +10,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180529231207) do
+ActiveRecord::Schema.define(version: 20180529232913) do
+
+  create_table "todo_list_events", force: :cascade do |t|
+    t.string "type", null: false
+    t.integer "todo_list_id", null: false
+    t.text "data", null: false
+    t.text "metadata", null: false
+    t.datetime "created_at", null: false
+    t.index ["todo_list_id"], name: "index_todo_list_events_on_todo_list_id"
+  end
 
   create_table "todo_lists", force: :cascade do |t|
     t.string "name", null: false
