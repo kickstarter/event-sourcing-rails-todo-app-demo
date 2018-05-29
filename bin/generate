@@ -1,0 +1,119 @@
+#!/usr/bin/env ruby
+# Generate Events, Commands, Reactors.
+#
+USAGE = <<~USAGE
+  script/generate app/models/commands/drop/update.rb
+  script/generate app/models/events/drop/title_updated.rb
+  script/generate app/models/reactors/notifications/new_subscriber.rb
+USAGE
+
+if ARGV.empty?
+  puts "Usage:"
+  puts USAGE
+  exit(-1)
+end
+
+require 'fileutils'
+
+def generate(file_path)
+  _app, _models, type, entity, file = file_path.split('/')
+  class_name = file.gsub(/\.rb$/, '').split('_').map(&:capitalize).join
+
+  content = template(
+    entity: entity,
+    class_name: class_name,
+    file: file.gsub(/\.rb$/, ''),
+    type: type
+  )
+
+  FileUtils.mkdir_p File.dirname(file_path)
+
+  File.open(file_path, 'w') do |f|
+    f.puts content
+  end
+
+  puts "Done!"
+  puts ""
+  puts content
+end
+
+def template(entity:, class_name:, file:, type:)
+  template = TEMPLATES.fetch(type.to_sym) { DEFAULT_TEMPLATE }
+
+  capitalized_entity = entity.split('_').map(&:capitalize).join
+  full_class_name = [capitalized_entity, class_name].join('::')
+
+  template
+    .gsub("FULL_CLASS_NAME", full_class_name) # Comment::Created
+    .gsub("CLASS_NAME", class_name) # Created
+    .gsub("ACTION", file) # created
+    .gsub("ENTITY", capitalized_entity) # Comment
+    .gsub("entity", entity) # comment
+end
+
+COMMAND_TEMPLATE = <<~CODE
+  # frozen_string_literal: true
+
+  module Commands
+    class FULL_CLASS_NAME
+      include Command
+
+      attributes :entity, :metadata
+
+      private def build_event
+        return if noop?
+
+        Events::ENTITY::CLASS_NAMEd.new(
+          entity: entity,
+          metadata: metadata
+        )
+      end
+
+      private def noop?
+        entity.ACTIONd?
+      end
+    end
+  end
+CODE
+
+EVENT_TEMPLATE = <<~CODE
+  # frozen_string_literal: true
+
+  class Events::ENTITY::CLASS_NAME < Events::ENTITY::BaseEvent
+    data_attributes :thing
+
+    def apply(entity)
+      entity.thing = thing
+
+      entity
+    end
+  end
+CODE
+
+REACTOR_TEMPLATE = <<~CODE
+  # frozen_string_literal: true
+
+  class Reactors::FULL_CLASS_NAME
+    def self.call(event)
+      # ...
+    end
+  end
+CODE
+
+TEMPLATES = {
+  events: EVENT_TEMPLATE,
+  commands: COMMAND_TEMPLATE,
+  reactors: REACTOR_TEMPLATE
+}
+
+DEFAULT_TEMPLATE = <<~CODE
+  # frozen_string_literal: true
+
+  class FULL_CLASS_NAME
+    # ...
+  end
+CODE
+
+ARGV.each do |file|
+  generate(file)
+end
