@@ -19,7 +19,7 @@ class Lib::EventDispatcher
   def self.dispatch(event)
     reactors = rules.for(event)
     reactors.sync.each { |reactor| reactor.call(event) }
-    reactors.async.each { |reactor| ReactorJob.create(event.class.name, event.id, reactor.to_s) }
+    reactors.async.each { |reactor| ReactorJob.perform_later(event, reactor.to_s) }
   end
 
   def self.rules
