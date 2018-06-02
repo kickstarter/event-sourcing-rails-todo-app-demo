@@ -2,7 +2,7 @@
 
 module Commands
   class TodoList::Create
-    include Command
+    include Lib::Command
 
     attributes :name, :metadata
 

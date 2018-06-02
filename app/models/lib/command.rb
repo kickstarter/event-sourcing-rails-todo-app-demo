@@ -29,7 +29,7 @@
 #     end
 #   end
 # ```
-module Commands
+module Lib
   module Command
     extend ActiveSupport::Concern
 
