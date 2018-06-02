@@ -8,6 +8,7 @@ class Events::BaseEvent < ActiveRecord::Base
   serialize :data, JSON
   serialize :metadata, JSON
 
+  before_validation :preset_aggregate
   before_create :apply_and_persist
   after_create :dispatch
 
@@ -78,11 +79,13 @@ class Events::BaseEvent < ActiveRecord::Base
     public_send "build_#{aggregate_name}"
   end
 
-  # Apply the transformation to the aggregate and save it.
-  private def apply_and_persist
+  private def preset_aggregate
     # Build aggregate when the event is creating an aggregate
     self.aggregate ||= build_aggregate
+  end
 
+  # Apply the transformation to the aggregate and save it.
+  private def apply_and_persist
     # Lock! (all good, we're in the ActiveRecord callback chain transaction)
     aggregate.lock! if aggregate.persisted?
 
