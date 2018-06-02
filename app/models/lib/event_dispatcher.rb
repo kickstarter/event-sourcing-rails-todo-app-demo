@@ -1,5 +1,5 @@
 # Dispatcher implementation used by Events::Dispatcher.
-class EventDispatcher
+class Lib::EventDispatcher
   # Register Reactors to Events.
   # * Reactors registered with `trigger` will be triggered synchronously
   # * Reactors registered with `async` will be triggered asynchronously via a Sidekiq Job
