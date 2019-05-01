@@ -10,4 +10,14 @@ class TodoListTest < ActiveSupport::TestCase
 
     assert_equal "My first list", TodoList.first!.name
   end
+
+  test "update name" do
+    event = Commands::TodoList::Create.call(name: "My first list", metadata: {})
+
+    todo_list = event.todo_list
+
+    Commands::TodoList::UpdateName.call(todo_list: todo_list, name: "New name", metadata: {})
+
+    assert_equal "New name", TodoList.first!.name
+  end
 end
